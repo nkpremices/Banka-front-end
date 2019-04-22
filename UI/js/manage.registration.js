@@ -6,6 +6,7 @@ const hide = fromHome[1];
 
 // A variable to fetch actions on the registration page
 let registration;
+let state;
 /* a variable to fetch variables coming
     from the reset password page */
 let resetSuccess;
@@ -14,48 +15,30 @@ if (params[1]) {
     fromReset = params[1].split('=');
     resetSuccess = fromReset[1]; // eslint-disable-line
 }
-/* Showing a success message if
-coming from the reset password page */
+// Functions to validate inputs
+const validate = (email, firstName, lastName, password) => {
+    const retobj = {
+        validEmail: false,
+        validFirstName: false,
+        validLastName: false,
+        validPassWord: false,
+    };
 
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,})/;
+    const nameRegex = /^[A-Za-z]+$/;
 
-// Functions to shift the sign in and sign up parts
-const signIn = () => {
-    // changing the navigation display
-    document.getElementById('home-nav').className = 'li nav-inactive';
-    document.getElementById('signin-nav').className = 'li nav-active';
-    document.getElementById('signup-nav').className = 'li nav-inactive';
+    if (email.length >= 5) retobj.validEmail = true;
+    if (firstName.length >= 3 && nameRegex.test(firstName)) {
+        retobj.validFirstName = true;
+    }
+    if (lastName.length >= 3 && nameRegex.test(lastName)) {
+        retobj.validLastName = true;
+    }
+    if (passwordRegex.test(password)) {
+        retobj.validPassWord = true;
+    }
 
-    // shifting to the sign in part
-    document.querySelector('.signup-form').className = 'hide';
-    document.querySelector('.signin-form').className = 'signin-form';
-
-    registration = true;
-};
-
-const signUp = () => {
-    // changing the display of the navigation
-    document.getElementById('home-nav').className = 'li nav-inactive';
-    document.getElementById('signin-nav').className = 'li nav-inactive';
-    document.getElementById('signup-nav').className = 'li nav-active';
-
-    // shifting to the signup part
-    document.querySelector('.form .hide').className = 'signup-form';
-    document.querySelector('.signin-form').className = 'signin-form hide';
-
-    registration = true;
-};
-
-const admin = () => {
-    window.location = './admin.login.html';
-};
-
-const staff = () => {
-    window.location = './staff.login.html';
-};
-
-// a funtion to return back on the home page
-const backToHome = () => {
-    window.location = '../index.html';
+    return retobj;
 };
 
 // Function to dismiss and create the alert messages
@@ -71,12 +54,152 @@ const createMessageBox = () => {
     alert.style.opacity = '1';
 };
 
+// A function to create an alert message
+const createAlert = (message, color) => {
+    document.querySelector('.alert .message').innerHTML = message;
+    document.querySelector('.alert').style.background = color;
+    setTimeout(createMessageBox, 800);
+};
 // creating the alert message on success
 const createMessageSucces = () => {
     const message = 'A new password has been sent to the email,'
     + ' please login with that password';
     document.querySelector('.alert .message').innerHTML = message;
     setTimeout(createMessageBox, 800);
+};
+
+
+// Functions to shift the sign in and sign up parts
+const signIn = () => {
+    // changing the navigation display
+    document.getElementById('home-nav').className = 'li nav-inactive';
+    document.getElementById('signin-nav').className = 'li nav-active';
+    document.getElementById('signup-nav').className = 'li nav-inactive';
+
+    // shifting to the sign in part
+    if (document.querySelector('.signup-form')) {
+        document.querySelector('.signup-form').className = 'hide';
+    }
+    document.querySelector('.signin-form').className = 'signin-form';
+    state = 'signin';
+
+    registration = true;
+};
+
+const signUp = () => {
+    // changing the display of the navigation
+    document.getElementById('home-nav').className = 'li nav-inactive';
+    document.getElementById('signin-nav').className = 'li nav-inactive';
+    document.getElementById('signup-nav').className = 'li nav-active';
+
+    // shifting to the signup part
+    if (state === 'signin') {
+        document.querySelector('.form .hide').className = 'signup-form';
+        document.querySelector('.signin-form').className = 'signin-form hide';
+    }
+    state = 'signup';
+    registration = true;
+
+    // Attempting to signup
+    document.querySelector('.signup-form')
+        .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document
+                .querySelector('.signup-form .form-body .email-field').value;
+            const firstName = document
+                .querySelector('.signup-form .form-body .first-name-field')
+                .value;
+            const lastName = document
+                .querySelector('.signup-form .form-body .last-name-field')
+                .value;
+            const password = document
+                .querySelector('.signup-form .form-body .password-field')
+                .value;
+
+            if (email && firstName && lastName && password) {
+                const signUpTemp = {
+                    email,
+                    firstName,
+                    lastName,
+                    password,
+                };
+                const signInTemp = {
+                    email,
+                    firstName,
+                    lastName,
+                    password,
+                };
+
+                const verify = validate(email, firstName, lastName, password);
+
+                const requestServer = async () => {
+                    // eslint-disable-next-line
+                    const SIGNUPURL = `${HOST}/api/v2/auth/signup`;
+                    // eslint-disable-next-line no-undef
+                    const SIGNINURL = `${HOST}/api/v2/auth/signin`;
+                    // eslint-disable-next-line
+                    const resultSignup = await sendRequestData('POST', SIGNUPURL, signUpTemp);
+
+                    if (resultSignup) {
+                        if (resultSignup.status === 201) {
+                            // eslint-disable-next-line
+                            const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
+                            if (resultLogin) {
+                                window.location = './dashboard.html';
+                            } else {
+                                const message = resultSignup.data.error;
+                                createAlert(message, 'brown');
+                            }
+                        } else if (resultSignup.status === 205) {
+                            const message = 'Email address already in use';
+                            createAlert(message, 'brown');
+                        } else {
+                            const message = resultSignup.data.error;
+                            createAlert(message, 'brown');
+                        }
+                    }
+                };
+
+                if (verify.validEmail) {
+                    if (verify.validFirstName) {
+                        if (verify.validLastName) {
+                            if (verify.validPassWord) {
+                                await requestServer();
+                            } else {
+                                const message = 'Password must contain at '
+                                + 'least numbers Lowercase letters and '
+                                + 'Uppercase letters';
+                                createAlert(message, 'brown');
+                            }
+                        } else {
+                            const message = 'last name must not contain '
+                            + 'spaces and must be at least 3 characters';
+                            createAlert(message, 'brown');
+                        }
+                    } else {
+                        const message = 'First name must not contain '
+                        + 'spaces and must be at least 3 characters';
+                        createAlert(message, 'brown');
+                    }
+                } else {
+                    const message = 'Invalid email provided';
+                    createAlert(message, 'brown');
+                }
+            }
+        });
+};
+
+const admin = () => {
+    window.location = './admin.login.html';
+};
+
+const staff = () => {
+    window.location = './staff.login.html';
+};
+
+// a funtion to return back on the home page
+const backToHome = () => {
+    window.location = '../index.html';
 };
 
 // Going to sign in from the form
@@ -113,4 +236,5 @@ document.querySelector('.alert .to-right')
 // Trynig to see which form will be hide
 if (!registration) {
     if (hide) signIn();
+    else signUp();
 }
