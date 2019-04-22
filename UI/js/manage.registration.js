@@ -145,7 +145,6 @@ const signUp = () => {
                             // eslint-disable-next-line
                             const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
                             if (resultLogin) {
-                                console.log(resultLogin);
                                 window.location = './dashboard.html';
                             } else {
                                 const message = resultSignup.data.error;
