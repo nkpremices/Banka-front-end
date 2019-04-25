@@ -1,4 +1,4 @@
-let HOST = 'http://localhost:3000';
+let HOST = 'https://banka-heroku.herokuapp.com';
 
 // See if the file is loaded locally
 if (window.location.href.includes('localhost')
