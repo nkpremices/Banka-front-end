@@ -84,6 +84,59 @@ const signIn = () => {
     state = 'signin';
 
     registration = true;
+
+    // Attempting to signin
+    document.querySelector('.signin-form')
+        .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document
+                .querySelector('.signin-form .form-body .email-field').value;
+            const password = document
+                .querySelector('.signin-form .form-body .password-field')
+                .value;
+
+            if (email && password) {
+                const signInTemp = {
+                    email,
+                    password,
+                };
+
+                const verify = validate(email, '', '', password);
+
+                const requestServer = async () => {
+                    // eslint-disable-next-line no-undef
+                    const SIGNINURL = `${HOST}/api/v2/auth/signin`;
+
+                    // eslint-disable-next-line
+                    const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
+                    if (resultLogin) {
+                        if (resultLogin.status === 200) {
+                            window.location = './dashboard.html';
+                        } else {
+                            const message = resultLogin.data.error;
+                            createAlert(message, 'brown');
+                        }
+                    } else {
+                        const message = resultLogin.data.error;
+                        createAlert(message, 'brown');
+                    }
+                };
+
+                if (verify.validEmail) {
+                    if (verify.validPassWord) {
+                        await requestServer();
+                    } else {
+                        const message = 'Password must contain at '
+                        + 'least numbers Lowercase letters and '
+                        + 'Uppercase letters';
+                        createAlert(message, 'brown');
+                    }
+                } else {
+                    const message = 'Invalid email provided';
+                    createAlert(message, 'brown');
+                }
+            }
+        });
 };
 
 const signUp = () => {
