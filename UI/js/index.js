@@ -1,4 +1,4 @@
-let HOST = 'https://banka-heroku.herokuapp.com';
+let HOST = 'http://localhost:3000';
 
 // See if the file is loaded locally
 if (window.location.href.includes('localhost')
@@ -49,21 +49,25 @@ const sendRequestData = async (METHOD, URL, data, token) => {
         body: JSON.stringify(data),
     });
 
-    const response = await fetch(request);
     let result;
 
-    if (response.status === 205) {
-        result = response;
-    } else result = await response.json();
+
+    try {
+        const response = await fetch(request);
+        console.log({ response });
+        result = response.status === 205 ? response : await response.json();
+    } catch (error) {
+        console.log('======>', error);
+    }
 
     return result;
 };
 
-// A function to reformat timestamp
+// A function to reformat timestamp}
 // eslint-disable-next-line no-unused-vars
 const reformatDateTime = (timestamp) => {
     // Convertig the timestamp
-    const d = new Date(timestamp);
+    const tempDate = new Date(timestamp);
     // A template for months
     const months = ['Jan', 'Feb', 'March', 'April', 'May', 'June',
         'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec',
@@ -77,17 +81,17 @@ const reformatDateTime = (timestamp) => {
     const subStrValues = ['st', 'nd', 'rd', 'st', 'nd', 'rd', 'st'];
 
     let subStr;
-    if (subStrNumbers.find(el => el === d.getDate())) {
-        subStr = subStrValues[subStrNumbers.indexOf(d.getDate())];
+    if (subStrNumbers.find(el => el === tempDate.getDate())) {
+        subStr = subStrValues[subStrNumbers.indexOf(tempDate.getDate())];
     } else subStr = 'th';
 
     // Formating the date
-    const day = days[d.getDay()];
-    const month = months[d.getMonth()];
-    const date = `${d.getDate()}${subStr}`;
-    const year = d.getFullYear();
-    const hour = d.getHours();
-    const minutes = d.getMinutes();
+    const day = days[tempDate.getDay()];
+    const month = months[tempDate.getMonth()];
+    const date = `${tempDate.getDate()}${subStr}`;
+    const year = tempDate.getFullYear();
+    const hour = tempDate.getHours();
+    const minutes = tempDate.getMinutes();
 
     const fullDate = `${day} ${month} ${date} ${year} -- ${hour}H : ${minutes}`;
 
