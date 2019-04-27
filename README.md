@@ -13,4 +13,4 @@ Front-end implementation of the [Banka app](https://github.com/nkpremices/Banka)
 * Bank account creation on the client dashboard
 
 ## Link to the front-end pages
-* The front end pages are served on this (link)[https://nkpremices.github.io/Banka-front-end/]
+* The front end pages are served on this [link](https://nkpremices.github.io/Banka-front-end/UI)
