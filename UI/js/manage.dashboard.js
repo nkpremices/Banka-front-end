@@ -12,6 +12,26 @@ const createAccount = () => {
     document.querySelector('.form').className = 'form to-right';
     document.querySelector('.create-account-form')
         .className = 'create-account-form';
+
+    document.querySelector('.create-account-form')
+        .addEventListener('submit', async () => {
+            const accountName = document
+                .querySelector('.create-account-form .form-body .accountName')
+                .value;
+            const currency = document
+                .querySelector('.create-account-form .form-body .currency')
+                .value;
+            const lastName = document
+                .querySelector('.create-account-form .form-body .last-name-field')
+                .value;
+            const type = document
+                .querySelector('.create-account-form .form-body .type')
+                .value;
+            // eslint-disable-next-line
+            const CREATEACCOUNTURL = `${HOST}/api/v2/accounts`;
+
+            
+        });
 };
 
 // A function to destroy the overlay

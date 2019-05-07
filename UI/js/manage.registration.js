@@ -84,6 +84,65 @@ const signIn = () => {
     state = 'signin';
 
     registration = true;
+
+    // Attempting to signin
+    document.querySelector('.signin-form')
+        .addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document
+                .querySelector('.signin-form .form-body .email-field').value;
+            const password = document
+                .querySelector('.signin-form .form-body .password-field')
+                .value;
+
+            if (email && password) {
+                const signInTemp = {
+                    email,
+                    password,
+                };
+
+                const verify = validate(email, '', '', password);
+
+                const requestServer = async () => {
+                    // eslint-disable-next-line no-undef
+                    const SIGNINURL = `${HOST}/api/v2/auth/signin`;
+
+                    // eslint-disable-next-line
+                    const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
+                    if (resultLogin) {
+                        if (resultLogin.status === 200) {
+                            window.localStorage
+                                .setItem('token', resultLogin.data.token);
+                            window.localStorage
+                                .setItem('userInfo',
+                                    JSON.stringify(resultLogin.data));
+                            window.location = './dashboard.html';
+                        } else {
+                            const { message } = resultLogin.error;
+                            createAlert(message, 'brown');
+                        }
+                    } else {
+                        const { message } = resultLogin.error;
+                        createAlert(message, 'brown');
+                    }
+                };
+
+                if (verify.validEmail) {
+                    if (verify.validPassWord) {
+                        await requestServer();
+                    } else {
+                        const message = 'Password must contain at '
+                        + 'least numbers Lowercase letters and '
+                        + 'Uppercase letters and must be at least'
+                        + '6 characters';
+                        createAlert(message, 'brown');
+                    }
+                } else {
+                    const message = 'Invalid email provided';
+                    createAlert(message, 'brown');
+                }
+            }
+        });
 };
 
 const signUp = () => {
@@ -144,17 +203,20 @@ const signUp = () => {
                         if (resultSignup.status === 201) {
                             // eslint-disable-next-line
                             const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
-                            if (resultLogin) {
+                            if (resultLogin.status === 200) {
+                                localStorage
+                                    .setItem('userInfo',
+                                        JSON.stringify(resultLogin.data));
                                 window.location = './dashboard.html';
                             } else {
-                                const message = resultSignup.data.error;
+                                const { message } = resultSignup.error;
                                 createAlert(message, 'brown');
                             }
                         } else if (resultSignup.status === 205) {
                             const message = 'Email address already in use';
                             createAlert(message, 'brown');
                         } else {
-                            const message = resultSignup.data.error;
+                            const { message } = resultSignup.error;
                             createAlert(message, 'brown');
                         }
                     }
@@ -168,7 +230,8 @@ const signUp = () => {
                             } else {
                                 const message = 'Password must contain at '
                                 + 'least numbers Lowercase letters and '
-                                + 'Uppercase letters';
+                                + 'Uppercase letters and must be at least'
+                                + '6 characters';
                                 createAlert(message, 'brown');
                             }
                         } else {
