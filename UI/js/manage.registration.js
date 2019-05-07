@@ -111,13 +111,18 @@ const signIn = () => {
                     const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
                     if (resultLogin) {
                         if (resultLogin.status === 200) {
+                            window.localStorage
+                                .setItem('token', resultLogin.data.token);
+                            window.localStorage
+                                .setItem('userInfo',
+                                    JSON.stringify(resultLogin.data));
                             window.location = './dashboard.html';
                         } else {
-                            const message = resultLogin.data.error;
+                            const { message } = resultLogin.error;
                             createAlert(message, 'brown');
                         }
                     } else {
-                        const message = resultLogin.data.error;
+                        const { message } = resultLogin.error;
                         createAlert(message, 'brown');
                     }
                 };
@@ -128,7 +133,8 @@ const signIn = () => {
                     } else {
                         const message = 'Password must contain at '
                         + 'least numbers Lowercase letters and '
-                        + 'Uppercase letters';
+                        + 'Uppercase letters and must be at least'
+                        + '6 characters';
                         createAlert(message, 'brown');
                     }
                 } else {
@@ -197,17 +203,20 @@ const signUp = () => {
                         if (resultSignup.status === 201) {
                             // eslint-disable-next-line
                             const resultLogin = await sendRequestData('POST', SIGNINURL, signInTemp);
-                            if (resultLogin) {
+                            if (resultLogin.status === 200) {
+                                localStorage
+                                    .setItem('userInfo',
+                                        JSON.stringify(resultLogin.data));
                                 window.location = './dashboard.html';
                             } else {
-                                const message = resultSignup.data.error;
+                                const { message } = resultSignup.error;
                                 createAlert(message, 'brown');
                             }
                         } else if (resultSignup.status === 205) {
                             const message = 'Email address already in use';
                             createAlert(message, 'brown');
                         } else {
-                            const message = resultSignup.data.error;
+                            const { message } = resultSignup.error;
                             createAlert(message, 'brown');
                         }
                     }
@@ -221,7 +230,8 @@ const signUp = () => {
                             } else {
                                 const message = 'Password must contain at '
                                 + 'least numbers Lowercase letters and '
-                                + 'Uppercase letters';
+                                + 'Uppercase letters and must be at least'
+                                + '6 characters';
                                 createAlert(message, 'brown');
                             }
                         } else {
